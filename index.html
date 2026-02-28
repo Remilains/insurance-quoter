@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance Quote Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #0066ff;
+    --green: #00e676;
+    --red: #ff4444;
+    --yellow: #ffd740;
+    --text: #e8f0fe;
+    --muted: #6b7fa3;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .header-text p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .status-pill {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 230, 118, 0.1);
+    border: 1px solid rgba(0, 230, 118, 0.25);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Main layout */
+  main {
+    padding: 36px 0 60px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+
+  .card-icon.blue { background: rgba(0, 102, 255, 0.15); }
+  .card-icon.cyan { background: rgba(0, 212, 255, 0.12); }
+
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  .card-body { padding: 24px; }
+
+  /* Form */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7fa3' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  select option { background: var(--surface2); }
+
+  input:focus, select:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
+  }
+
+  input::placeholder { color: var(--muted); opacity: 0.6; }
+
+  .section-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+
+  .section-divider span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .section-divider::before, .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: var(--font-head);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .submit-btn .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .submit-btn.loading .spinner { display: block; }
+  .submit-btn.loading .btn-text { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Right panel */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 24px;
+  }
+
+  /* Carriers status */
+  .carrier-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px 24px;
+  }
+
+  .carrier-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.3s;
+  }
+
+  .carrier-item.running {
+    border-color: rgba(0, 212, 255, 0.4);
+    background: rgba(0, 212, 255, 0.05);
+  }
+
+  .carrier-item.success {
+    border-color: rgba(0, 230, 118, 0.4);
+    background: rgba(0, 230, 118, 0.05);
+  }
+
+  .carrier-item.error {
+    border-color: rgba(255, 68, 68, 0.4);
+    background: rgba(255, 68, 68, 0.05);
+  }
+
+  .carrier-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .carrier-info { flex: 1; }
+
+  .carrier-name {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-head);
+  }
+
+  .carrier-status {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .carrier-rate {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .carrier-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .carrier-badge.idle { background: var(--border); color: var(--muted); }
+  .carrier-badge.running {
+    background: rgba(0, 212, 255, 0.2);
+    color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+  .carrier-badge.success { background: rgba(0, 230, 118, 0.2); color: var(--green); }
+  .carrier-badge.error { background: rgba(255, 68, 68, 0.2); color: var(--red); }
+
+  /* Results section */
+  #results-section { display: none; }
+
+  .results-summary {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .result-carrier {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .result-rate {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .result-rate.error-rate {
+    font-size: 12px;
+    color: var(--red);
+    font-family: var(--font-body);
+    font-weight: 400;
+  }
+
+  .whatsapp-sent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(0, 230, 118, 0.08);
+    border: 1px solid rgba(0, 230, 118, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  /* History */
+  .history-list {
+    padding: 0 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .history-client { font-weight: 500; }
+  .history-time { color: var(--muted); font-size: 11px; }
+
+  .history-list::-webkit-scrollbar { width: 4px; }
+  .history-list::-webkit-scrollbar-track { background: transparent; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Screenshot viewer */
+  .screenshots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 24px 20px;
+  }
+
+  .screenshot-item {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .screenshot-label {
+    padding: 8px 12px;
+    background: var(--surface2);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .screenshot-item img {
+    width: 100%;
+    display: block;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+    margin: 0 24px 20px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 1px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .timer-text {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 16px;
+    margin-top: -8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; }
+    .right-panel { position: static; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-mark">IQ</div>
+    <div class="header-text">
+      <h1>Insurance Quote Engine</h1>
+      <p>Good2Go · NatGen · Bristol West — simultaneous quoting</p>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      System Online
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: Form -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon blue">👤</div>
+          <span class="card-title">Client Information</span>
+        </div>
+        <div class="card-body">
+          <form id="quoteForm">
+            <div class="form-grid">
+
+              <div class="section-divider"><span>Personal Details</span></div>
+
+              <div class="form-group">
+                <label>First Name</label>
+                <input type="text" id="first_name" placeholder="John" required>
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="last_name" placeholder="Smith" required>
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="text" id="dob" placeholder="MM/DD/YYYY" required>
+              </div>
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="gender" required>
+                  <option value="">Select...</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+
+              <div class="section-divider"><span>Address</span></div>
+
+              <div class="form-group full">
+                <label>Street Address</label>
+                <input type="text" id="address" placeholder="123 Main St" required>
+              </div>
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" id="city" placeholder="Miami" required>
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <select id="state" required>
+                  <option value="">Select...</option>
+                  <option value="FL">Florida</option>
+                  <option value="GA">Georgia</option>
+                  <option value="TX">Texas</option>
+                  <option value="PA">Pennsylvania</option>
+                  <option value="NJ">New Jersey</option>
+                  <option value="NY">New York</option>
+                  <option value="CA">California</option>
+                  <option value="IL">Illinois</option>
+                  <option value="OH">Ohio</option>
+                  <option value="MI">Michigan</option>
+                  <option value="NC">North Carolina</option>
+                  <option value="VA">Virginia</option>
+                  <option value="AZ">Arizona</option>
+                  <option value="CO">Colorado</option>
+                  <option value="WA">Washington</option>
+                  <option value="TN">Tennessee</option>
+                  <option value="IN">Indiana</option>
+                  <option value="MO">Missouri</option>
+                  <option value="SC">South Carolina</option>
+                  <option value="AL">Alabama</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>ZIP Code</label>
+                <input type="text" id="zip_code" placeholder="33101" maxlength="5" required>
+              </div>
+
+              <div class="section-divider"><span>Driver & Vehicle</span></div>
+
+              <div class="form-group">
+                <label>License Number</label>
+                <input type="text" id="license_number" placeholder="D123456789" required>
+              </div>
+              <div class="form-group">
+                <label>Date Licensed (MMDDYYYY)</label>
+                <input type="text" id="date_licensed" placeholder="06202020" maxlength="8" required>
+              </div>
+              <div class="form-group full">
+                <label>VIN Number</label>
+                <input type="text" id="vin" placeholder="1HGBH41JXMN109186" maxlength="17" required>
+              </div>
+
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+              <div class="spinner"></div>
+              <span class="btn-text">⚡ Run All 3 Quotes Simultaneously</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Status + Results -->
+    <div class="right-panel">
+
+      <!-- Carrier status -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon cyan">🔄</div>
+          <span class="card-title">Carrier Status</span>
+        </div>
+        <div class="carrier-list">
+          <div class="carrier-item" id="status-good2go">
+            <div class="carrier-icon">🟦</div>
+            <div class="carrier-info">
+              <div class="carrier-name">Good2Go</div>
+              <div class="carrier-status" id="status-good2go-text">Ready</div>
+            </div>
+            <div class="carrier-rate" id="rate-good2go" style="display:none"></div>
+            <div class="carrier-badge idle" id="badge-good2go">—</div>
+          </div>
+          <div class="carrier-item" id="status-natgen">
+            <div class="carrier-icon">🟩</div>
+            <div class="carrier-info">
+              <div class="carrier-name">NatGen</div>
+              <div class="carrier-status" id="status-natgen-text">Ready</div>
+            </div>
+            <div class="carrier-rate" id="rate-natgen" style="display:none"></div>
+            <div class="carrier-badge idle" id="badge-natgen">—</div>
+          </div>
+          <div class="carrier-item" id="status-bw">
+            <div class="carrier-icon">🟧</div>
+            <div class="carrier-info">
+              <div class="carrier-name">Bristol West</div>
+              <div class="carrier-status" id="status-bw-text">Ready</div>
+            </div>
+            <div class="carrier-rate" id="rate-bw" style="display:none"></div>
+            <div class="carrier-badge idle" id="badge-bw">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results (shown after completion) -->
+      <div class="card" id="results-section">
+        <div class="card-header">
+          <div class="card-icon cyan">✅</div>
+          <span class="card-title">Quote Results</span>
+        </div>
+        <div id="progress-container" style="display:none">
+          <div style="height:12px"></div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="timer-text" id="timerText">Running quotes...</div>
+        </div>
+        <div class="results-summary" id="results-body"></div>
+        <div class="screenshots" id="screenshots-body"></div>
+      </div>
+
+      <!-- Recent history -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon blue">📋</div>
+          <span class="card-title">Recent Quotes</span>
+        </div>
+        <div class="history-list" id="historyList">
+          <div style="color: var(--muted); font-size: 12px; text-align:center; padding: 16px 0;">No quotes yet today</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Load history on page load
+  loadHistory();
+
+  // Timer
+  let timerInterval = null;
+  let startTime = null;
+
+  function startTimer() {
+    startTime = Date.now();
+    const timerEl = document.getElementById('timerText');
+    const progressEl = document.getElementById('progressFill');
+    timerInterval = setInterval(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+      timerEl.textContent = `Running quotes... ${elapsed}s elapsed`;
+      // Estimate ~120 seconds total, fill progress
+      const pct = Math.min((elapsed / 120) * 100, 95);
+      progressEl.style.width = pct + '%';
+    }, 500);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    document.getElementById('progressFill').style.width = '100%';
+  }
+
+  function setCarrierStatus(carrier, status, rateText) {
+    const keyMap = { 'Good2Go': 'good2go', 'NatGen': 'natgen', 'Bristol West': 'bw' };
+    const key = keyMap[carrier] || carrier.toLowerCase().replace(' ', '');
+
+    const item = document.getElementById(`status-${key}`);
+    const badge = document.getElementById(`badge-${key}`);
+    const statusText = document.getElementById(`status-${key}-text`);
+    const rateEl = document.getElementById(`rate-${key}`);
+
+    item.className = `carrier-item ${status}`;
+    badge.className = `carrier-badge ${status}`;
+
+    if (status === 'running') {
+      badge.textContent = '↻';
+      statusText.textContent = 'Quoting...';
+    } else if (status === 'success') {
+      badge.textContent = '✓';
+      statusText.textContent = 'Complete';
+      if (rateText) {
+        rateEl.textContent = rateText;
+        rateEl.style.display = 'block';
+      }
+    } else if (status === 'error') {
+      badge.textContent = '✗';
+      statusText.textContent = 'Error';
+    }
+  }
+
+  document.getElementById('quoteForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+
+    // Set all carriers to running
+    ['Good2Go', 'NatGen', 'Bristol West'].forEach(c => setCarrierStatus(c, 'running'));
+
+    // Show results section with progress
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('progress-container').style.display = 'block';
+    document.getElementById('results-body').innerHTML = '';
+    document.getElementById('screenshots-body').innerHTML = '';
+    startTimer();
+
+    const payload = {
+      first_name: document.getElementById('first_name').value,
+      last_name: document.getElementById('last_name').value,
+      dob: document.getElementById('dob').value,
+      gender: document.getElementById('gender').value,
+      address: document.getElementById('address').value,
+      city: document.getElementById('city').value,
+      state: document.getElementById('state').value,
+      zip_code: document.getElementById('zip_code').value,
+      license_number: document.getElementById('license_number').value,
+      date_licensed: document.getElementById('date_licensed').value,
+      vin: document.getElementById('vin').value,
+    };
+
+    try {
+      const response = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      stopTimer();
+
+      if (data.success) {
+        const resultsBody = document.getElementById('results-body');
+        const screenshotsBody = document.getElementById('screenshots-body');
+        document.getElementById('progress-container').style.display = 'none';
+
+        // Update carrier statuses and show results
+        data.results.forEach(r => {
+          if (r.error) {
+            setCarrierStatus(r.carrier, 'error');
+          } else {
+            setCarrierStatus(r.carrier, 'success', r.rate);
+          }
+
+          // Result row
+          const row = document.createElement('div');
+          row.className = 'result-row';
+          row.innerHTML = `
+            <div class="result-carrier">${r.carrier}</div>
+            <div class="result-rate ${r.error ? 'error-rate' : ''}">${r.error ? 'Error: ' + r.error.substring(0, 40) : (r.rate || 'See screenshot')}</div>
+          `;
+          resultsBody.appendChild(row);
+
+          // Screenshot
+          if (r.screenshot) {
+            const ss = document.createElement('div');
+            ss.className = 'screenshot-item';
+            ss.innerHTML = `
+              <div class="screenshot-label">${r.carrier}</div>
+              <img src="data:image/png;base64,${r.screenshot}" alt="${r.carrier} quote screenshot">
+            `;
+            screenshotsBody.appendChild(ss);
+          }
+        });
+
+        // WhatsApp sent notice
+        const waNotice = document.createElement('div');
+        waNotice.className = 'whatsapp-sent';
+        waNotice.innerHTML = '✅ Results sent to WhatsApp team chat';
+        resultsBody.appendChild(waNotice);
+
+        // Refresh history
+        loadHistory();
+
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+        ['Good2Go', 'NatGen', 'Bristol West'].forEach(c => setCarrierStatus(c, 'error'));
+      }
+
+    } catch (err) {
+      stopTimer();
+      alert('Network error. Please try again.');
+      ['Good2Go', 'NatGen', 'Bristol West'].forEach(c => setCarrierStatus(c, 'error'));
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  });
+
+  async function loadHistory() {
+    try {
+      const res = await fetch('/api/quotes/history');
+      const history = await res.json();
+      const list = document.getElementById('historyList');
+
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color: var(--muted); font-size: 12px; text-align:center; padding: 16px 0;">No quotes yet today</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      [...history].reverse().slice(0, 15).forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const rates = item.results.map(r => r.rate ? r.rate : '—').join(' · ');
+        el.innerHTML = `
+          <div>
+            <div class="history-client">${item.client}</div>
+            <div class="history-time">${rates}</div>
+          </div>
+          <div class="history-time">${time}</div>
+        `;
+        list.appendChild(el);
+      });
+    } catch (e) {
+      // silently fail
+    }
+  }
+</script>
+</body>
+</html>
